@@ -1,13 +1,15 @@
 """
-Clinical RAG Assistant - Streamlit Web Interface
-------------------------------------------------
-A clean, trustworthy, modern medical UI for the Clinical RAG system.
-Displays evidence-grounded recommendations, confidence levels, 
-supporting evidence, and citation details from WHO Guidelines & MedlinePlus.
+AI Clinical Decision Support - Premium Dark Medical AI Dashboard
+----------------------------------------------------------------
+A high-performance, dark-themed healthcare SaaS dashboard for evidence-grounded medical QA.
+Features multilingual generation, dark-themed attached autocomplete search,
+and concise explanatory supporting evidence summaries.
 """
 import sys
+import json
 from pathlib import Path
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Ensure current directory is in Python path for module imports
 CURRENT_DIR = Path(__file__).parent.resolve()
@@ -22,168 +24,279 @@ except Exception as import_err:
 
 # --- Streamlit Page Configuration ---
 st.set_page_config(
-    page_title="Clinical RAG Assistant",
+    page_title="AI Clinical Decision Support — Clinical AI Dashboard",
     page_icon="🩺",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- Custom Medical CSS Design System ---
+SUPPORTED_LANGUAGES = [
+    "English",
+    "Arabic",
+    "French",
+    "Spanish",
+    "German",
+    "Italian",
+    "Turkish",
+    "Portuguese",
+    "Hindi",
+    "Chinese",
+    "Japanese"
+]
+
+# Declare custom Streamlit component from local folder
+COMPONENT_DIR = CURRENT_DIR / "google_search_component"
+google_autocomplete_component = components.declare_component(
+    "google_autocomplete_component",
+    path=str(COMPONENT_DIR)
+)
+
+
+def render_autocomplete_search(initial_val: str) -> str:
+    """Renders the dark Google Search Autocomplete component safely,
+    guaranteeing that initial_val is always a string.
+    """
+    if not isinstance(initial_val, str):
+        initial_val = ""
+
+    component_result = google_autocomplete_component(
+        initial_value=initial_val,
+        key="google_autocomplete_widget_instance"
+    )
+
+    if isinstance(component_result, str):
+        return component_result
+    return initial_val
+
+
+# --- Custom Medical CSS Design System (Premium Dark SaaS Theme) ---
 st.markdown(
     """
     <style>
-    /* Global Page Styling */
+    /* Global Background & Base Theme */
     .stApp {
-        background-color: #F5F9FC;
-        color: #1F2937;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #06111F;
+        background-image: 
+            radial-gradient(circle at 85% 8%, rgba(47, 128, 237, 0.08) 0%, transparent 45%),
+            radial-gradient(circle at 12% 90%, rgba(139, 92, 246, 0.07) 0%, transparent 45%);
+        color: #F8FAFC;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     
-    /* Main Layout Alignment */
+    /* Layout Container Alignment */
     .block-container {
-        padding-top: 2rem;
+        padding-top: 1.8rem;
         padding-bottom: 3rem;
-        max-width: 800px;
+        max-width: 1220px;
     }
 
-    /* Header Component */
-    .clinical-header {
-        background: #FFFFFF;
+    /* 1. Header Hero Card */
+    .clinical-hero-card {
+        background: #0D1D30;
+        border: 1px solid rgba(148, 163, 184, 0.15);
         border-radius: 16px;
-        padding: 24px 32px;
+        padding: 22px 32px;
         margin-bottom: 24px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 4px 12px rgba(23, 105, 170, 0.05);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        background-image: radial-gradient(circle at 90% 10%, rgba(47, 128, 237, 0.12) 0%, transparent 60%),
+                          radial-gradient(circle at 10% 90%, rgba(139, 92, 246, 0.12) 0%, transparent 60%);
+    }
+    .hero-content-left {
         display: flex;
         align-items: center;
         gap: 16px;
     }
-    .clinical-header-icon {
-        font-size: 38px;
-        background: #EBF3FA;
+    .hero-icon-box {
+        font-size: 32px;
+        background: rgba(47, 128, 237, 0.12);
+        border: 1px solid rgba(47, 128, 237, 0.25);
         border-radius: 12px;
-        width: 56px;
-        height: 56px;
+        width: 54px;
+        height: 54px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
     }
-    .clinical-header-title {
-        color: #1769AA;
-        font-size: 26px;
+    .hero-title {
+        color: #F8FAFC;
+        font-size: 24px;
         font-weight: 700;
         margin: 0;
         line-height: 1.2;
+        letter-spacing: -0.3px;
     }
-    .clinical-header-subtitle {
-        color: #64748B;
+    .hero-subtitle {
+        color: #94A3B8;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 450;
         margin-top: 4px;
         margin-bottom: 0;
     }
+    .hero-ai-badge {
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.25);
+        color: #22D3EE;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    /* Column Panel Titles */
+    .panel-header-title {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .panel-title-left {
+        color: #8B5CF6;
+    }
+    .panel-title-right {
+        color: #22D3EE;
+    }
 
     /* Input Card Container */
-    .input-card {
-        background: #FFFFFF;
+    .input-panel-card {
+        background: #0D1D30;
+        border: 1px solid rgba(148, 163, 184, 0.15);
         border-radius: 16px;
-        padding: 24px 28px;
-        margin-bottom: 24px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 4px 12px rgba(23, 105, 170, 0.04);
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        margin-bottom: 20px;
     }
-    
-    .input-label {
-        font-size: 15px;
+
+    .input-field-label {
+        font-size: 13.5px;
         font-weight: 600;
-        color: #1F2937;
+        color: #94A3B8;
         margin-bottom: 8px;
     }
 
-    /* Style Text Area and Button */
-    .stTextArea textarea {
+    /* Selectbox Main Control Dark Theme */
+    .stSelectbox > div > div {
         border-radius: 10px !important;
-        border: 1px solid #CBD5E1 !important;
-        background-color: #FAFAFA !important;
-        color: #1F2937 !important;
-        font-size: 15px !important;
+        border: 1px solid rgba(148, 163, 184, 0.25) !important;
+        background-color: #081728 !important;
+        color: #F8FAFC !important;
     }
-    .stTextArea textarea:focus {
-        border-color: #1769AA !important;
-        box-shadow: 0 0 0 2px rgba(23, 105, 170, 0.15) !important;
-        background-color: #FFFFFF !important;
+    .stSelectbox label {
+        color: #94A3B8 !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
     }
-    
-    .stButton button {
-        background-color: #1769AA !important;
+    .stSelectbox svg {
+        fill: #22D3EE !important;
+    }
+
+    /* BaseWeb Selectbox Popover Dropdown Menu List */
+    div[data-baseweb="popover"],
+    div[data-baseweb="menu"],
+    ul[role="listbox"] {
+        background-color: #0D1D30 !important;
+        border: 1px solid rgba(148, 163, 184, 0.25) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Individual Dropdown Menu Options */
+    li[role="option"],
+    div[role="option"],
+    ul[role="listbox"] li,
+    div[data-baseweb="menu"] div {
+        background-color: #0D1D30 !important;
+        color: #F8FAFC !important;
+        font-size: 14px !important;
+        padding: 10px 16px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+        transition: background-color 0.15s ease, color 0.15s ease !important;
+    }
+
+    /* Hover & Active Selected State for Language Options */
+    li[role="option"]:hover,
+    li[role="option"][aria-selected="true"],
+    div[role="option"]:hover,
+    div[role="option"][aria-selected="true"],
+    ul[role="listbox"] li:hover {
+        background-color: #0A1728 !important;
+        color: #22D3EE !important;
+    }
+
+    /* Primary Submit Button "[ ✦ Ask ]" */
+    div.stButton > button.ask-primary-btn, div.stButton > button {
+        background: linear-gradient(135deg, #2F80ED 0%, #7C3AED 100%) !important;
         color: #FFFFFF !important;
         font-weight: 600 !important;
-        font-size: 15px !important;
-        border-radius: 10px !important;
-        padding: 10px 24px !important;
+        font-size: 15.5px !important;
+        border-radius: 12px !important;
+        padding: 12px 24px !important;
         border: none !important;
         transition: all 0.2s ease !important;
-        box-shadow: 0 2px 6px rgba(23, 105, 170, 0.2) !important;
+        box-shadow: 0 4px 14px rgba(47, 128, 237, 0.3) !important;
+        width: 100% !important;
+        letter-spacing: 0.3px !important;
+        min-height: 52px !important;
     }
-    .stButton button:hover {
-        background-color: #125488 !important;
-        box-shadow: 0 4px 10px rgba(23, 105, 170, 0.3) !important;
+    div.stButton > button:hover {
+        opacity: 0.92 !important;
+        box-shadow: 0 6px 18px rgba(47, 128, 237, 0.45) !important;
+        transform: translateY(-1px);
     }
 
-    /* Empty State Card */
-    .empty-state-card {
-        background: #FFFFFF;
+    /* Final Answer Card */
+    .answer-card {
+        background: #0D1D30;
+        border: 1px solid rgba(148, 163, 184, 0.15);
         border-radius: 16px;
-        padding: 36px 28px;
-        text-align: center;
-        border: 1px dashed #CBD5E1;
-        margin-bottom: 24px;
+        padding: 26px;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
     }
-    .empty-state-icon {
-        font-size: 40px;
-        margin-bottom: 12px;
-    }
-    .empty-state-text {
-        color: #64748B;
-        font-size: 15px;
-        max-width: 520px;
-        margin: 0 auto 20px auto;
-        line-height: 1.5;
-    }
-
-    /* Section Headings */
-    .section-title {
-        font-size: 17px;
-        font-weight: 700;
-        color: #1F2937;
-        margin-bottom: 12px;
+    .card-header-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .card-header-label {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #94A3B8;
+        text-transform: uppercase;
     }
 
-    /* Main Answer Card */
-    .answer-card {
-        background: #FFFFFF;
-        border-radius: 16px;
-        padding: 28px;
-        margin-bottom: 20px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 4px 14px rgba(23, 105, 170, 0.05);
-    }
     .recommendation-text {
         font-size: 16px;
-        line-height: 1.65;
-        color: #1F2937;
-        font-weight: 450;
+        line-height: 1.7;
+        color: #F8FAFC;
+        font-weight: 400;
         white-space: pre-wrap;
     }
 
-    /* Confidence Badges */
+    /* Confidence Badges (Mapping Backend Confidence Output) */
     .badge {
-        display: inline-block;
-        padding: 4px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
         border-radius: 20px;
         font-size: 12px;
         font-weight: 700;
@@ -191,98 +304,101 @@ st.markdown(
         text-transform: uppercase;
     }
     .badge-high {
-        background-color: #E8F5E9;
-        color: #2E7D32;
-        border: 1px solid #A5D6A7;
+        background-color: #052E16;
+        color: #22C55E;
+        border: 1px solid rgba(34, 197, 94, 0.35);
     }
     .badge-medium {
-        background-color: #FFF8E1;
-        color: #D97706;
-        border: 1px solid #FDE68A;
+        background-color: #451A03;
+        color: #F59E0B;
+        border: 1px solid rgba(245, 158, 11, 0.35);
     }
     .badge-low {
-        background-color: #FFEBEE;
-        color: #D32F2F;
-        border: 1px solid #FFCDD2;
+        background-color: #450A0A;
+        color: #EF4444;
+        border: 1px solid rgba(239, 68, 68, 0.35);
     }
     .badge-insufficient {
-        background-color: #F1F5F9;
-        color: #64748B;
-        border: 1px solid #CBD5E1;
+        background-color: #450A0A;
+        color: #EF4444;
+        border: 1px solid rgba(239, 68, 68, 0.35);
     }
 
-    /* Evidence Block */
+    /* Supporting Evidence Card */
     .evidence-card {
-        background: #F8FAFC;
-        border-left: 4px solid #2A9D8F;
-        border-radius: 8px 12px 12px 8px;
-        padding: 18px 22px;
+        background: #0D1D30;
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 16px;
+        padding: 22px 26px;
         margin-bottom: 20px;
-        border-top: 1px solid #E2E8F0;
-        border-right: 1px solid #E2E8F0;
-        border-bottom: 1px solid #E2E8F0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
     .evidence-text {
-        font-size: 14px;
-        line-height: 1.6;
-        color: #334155;
-        font-style: italic;
+        font-size: 14.5px;
+        line-height: 1.65;
+        color: #94A3B8;
+        white-space: pre-wrap;
     }
 
-    /* Citation Cards */
+    /* Sources Cards Grid */
     .citation-grid {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
         margin-bottom: 24px;
     }
     .citation-card {
-        background: #FFFFFF;
+        background: #0D1D30;
+        border: 1px solid rgba(148, 163, 184, 0.15);
         border-radius: 12px;
         padding: 14px 18px;
-        border: 1px solid #E2E8F0;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+        transition: border-color 0.15s ease;
+    }
+    .citation-card:hover {
+        border-color: rgba(139, 92, 246, 0.4);
     }
     .citation-main {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
     }
     .citation-doc {
         font-size: 14px;
         font-weight: 600;
-        color: #1F2937;
+        color: #F8FAFC;
     }
     .citation-meta {
         font-size: 13px;
-        color: #64748B;
+        color: #94A3B8;
     }
     .citation-link {
-        color: #1769AA;
+        color: #22D3EE;
         text-decoration: none;
         font-size: 13px;
         font-weight: 600;
-        padding: 4px 12px;
-        background: #EBF3FA;
-        border-radius: 6px;
-        transition: background 0.2s ease;
+        padding: 5px 12px;
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.25);
+        border-radius: 8px;
+        transition: all 0.15s ease;
     }
     .citation-link:hover {
-        background: #D6E8F7;
-        text-decoration: underline;
+        background: rgba(34, 211, 238, 0.2);
+        color: #FFFFFF;
     }
 
-    /* Warning / Insufficient Box */
+    /* Refusal Box */
     .insufficient-box {
-        background-color: #FEF2F2;
-        border: 1px solid #FCA5A5;
+        background-color: #2A0808;
+        border: 1px solid #EF4444;
         border-radius: 12px;
         padding: 18px 22px;
-        color: #991B1B;
-        font-size: 15px;
+        color: #FCA5A5;
+        font-size: 14.5px;
         line-height: 1.5;
         margin-bottom: 20px;
         display: flex;
@@ -290,18 +406,22 @@ st.markdown(
         gap: 12px;
     }
 
-    /* Disclaimer Footer */
-    .disclaimer-box {
-        margin-top: 40px;
-        padding-top: 16px;
-        border-top: 1px solid #E2E8F0;
-        text-align: center;
+    /* Clinical Disclaimer Notice */
+    .disclaimer-card {
+        background: #0A1728;
+        border: 1px solid rgba(47, 128, 237, 0.25);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-top: 24px;
         color: #94A3B8;
-        font-size: 12px;
-        line-height: 1.5;
+        font-size: 12.5px;
+        line-height: 1.55;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
-    /* Hide Streamlit Default Elements */
+    /* Hide Default Streamlit Chrome */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -311,240 +431,245 @@ st.markdown(
 )
 
 # --- Session State Initialization ---
-if "submitted_question" not in st.session_state:
-    st.session_state["submitted_question"] = ""
+if "current_search_query" not in st.session_state or not isinstance(st.session_state["current_search_query"], str):
+    st.session_state["current_search_query"] = ""
+
+if "selected_language" not in st.session_state:
+    st.session_state["selected_language"] = "English"
+
 if "pipeline_result" not in st.session_state:
     st.session_state["pipeline_result"] = None
-if "is_loading" not in st.session_state:
-    st.session_state["is_loading"] = False
+
 if "error_message" not in st.session_state:
     st.session_state["error_message"] = None
 
 
-def handle_sample_click(question_text: str):
-    """Callback for sample query buttons."""
-    st.session_state["submitted_question"] = question_text
-    st.session_state["should_run"] = True
-
-
-# --- 1. HEADER SECTION ---
+# --- 1. HERO HEADER CARD ---
 st.markdown(
     """
-    <div class="clinical-header">
-        <div class="clinical-header-icon">🩺</div>
-        <div>
-            <h1 class="clinical-header-title">Clinical RAG Assistant</h1>
-            <p class="clinical-header-subtitle">Evidence-Grounded Clinical Information Assistant</p>
+    <div class="clinical-hero-card">
+        <div class="hero-content-left">
+            <div class="hero-icon-box">🩺</div>
+            <div>
+                <h1 class="hero-title">AI Clinical Decision Support</h1>
+                <p class="hero-subtitle">Your evidence-grounded medical assistant</p>
+            </div>
+        </div>
+        <div class="hero-ai-badge">
+            <span>✨</span> MEDICAL AI
         </div>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# --- 2. QUESTION INPUT SECTION ---
-# Sample questions list
-SAMPLE_QUESTIONS = [
-    "What are the symptoms of high blood pressure?",
-    "What blood pressure level does WHO recommend for starting treatment?",
-    "What is the target blood pressure according to the WHO guideline?"
-]
+# --- 2. TWO-COLUMN DASHBOARD LAYOUT (30% / 70%) ---
+col_input, col_results = st.columns([1, 2.2])
 
-# Check if a sample button triggered execution
-default_text = st.session_state.get("submitted_question", "")
+# ==============================================================================
+# LEFT COLUMN: INPUT PANEL (~30%)
+# ==============================================================================
+with col_input:
+    st.markdown('<div class="panel-header-title panel-title-left"><span>⚙️</span> INPUT PANEL</div>', unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown('<div class="input-panel-card">', unsafe_allow_html=True)
+        
+        # Response Language Selector (Positioned ABOVE Search Component)
+        selected_language = st.selectbox(
+            label="Response Language",
+            options=SUPPORTED_LANGUAGES,
+            index=SUPPORTED_LANGUAGES.index(st.session_state.get("selected_language", "English")),
+            key="language_selector_key"
+        )
+        st.session_state["selected_language"] = selected_language
 
-with st.container():
-    question_input = st.text_area(
-        label="Ask a clinical question",
-        value=default_text,
-        placeholder="e.g., What blood pressure level does WHO recommend for starting treatment?",
-        height=100,
-        key="clinical_query_input"
-    )
+        st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
 
-    col_btn, _ = st.columns([1, 2])
-    with col_btn:
-        ask_clicked = st.button("Ask Question", use_container_width=True)
+        # Custom Google Autocomplete Component (Full-Width, 54px Height)
+        st.session_state["current_search_query"] = render_autocomplete_search(st.session_state["current_search_query"])
 
-# Determine if query should be processed
-should_run = ask_clicked or st.session_state.pop("should_run", False)
+        st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
 
-if should_run and question_input.strip():
-    query_to_process = question_input.strip()
-    st.session_state["submitted_question"] = query_to_process
+        # Primary Submit Button "[ ✦ Ask ]"
+        ask_clicked = st.button("✦ Ask", use_container_width=True, key="ask_submit_btn")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# Process query trigger
+query_text_to_run = st.session_state["current_search_query"].strip() if isinstance(st.session_state.get("current_search_query"), str) else ""
+
+if ask_clicked and query_text_to_run:
     st.session_state["error_message"] = None
     st.session_state["pipeline_result"] = None
 
-    # --- 3. LOADING STATE & EXECUTION ---
     if run_pipeline is None:
         st.session_state["error_message"] = f"Backend pipeline import failed: {_import_error_msg}"
     else:
-        with st.spinner("Searching clinical sources and generating an evidence-grounded answer..."):
+        with st.spinner(f"Searching clinical sources and generating answer in {selected_language}..."):
             try:
-                response_obj = run_pipeline(query_to_process)
+                response_obj = run_pipeline(query_text_to_run, language=selected_language)
                 st.session_state["pipeline_result"] = response_obj
             except Exception as ex:
                 st.session_state["error_message"] = (
                     "An unexpected error occurred while processing your clinical request. "
-                    "Please check the server logs for technical details."
+                    "Please check terminal/server logs for technical details."
                 )
 
-# --- DISPLAY RESULTS OR EMPTY STATE ---
-result = st.session_state.get("pipeline_result")
-error_msg = st.session_state.get("error_message")
+# ==============================================================================
+# RIGHT COLUMN: RESULTS PANEL (~70%)
+# ==============================================================================
+with col_results:
+    st.markdown('<div class="panel-header-title panel-title-right"><span>📊</span> RESULTS PANEL</div>', unsafe_allow_html=True)
 
-# --- 9. ERROR HANDLING ---
-if error_msg:
-    st.error(error_msg, icon="⚠️")
+    result = st.session_state.get("pipeline_result")
+    error_msg = st.session_state.get("error_message")
 
-elif result is not None:
-    recommendation = result.get("recommendation", "")
-    evidence = result.get("evidence", "")
-    citations = result.get("citations", [])
-    confidence = str(result.get("confidence", "insufficient")).lower()
+    if error_msg:
+        st.error(error_msg, icon="⚠️")
 
-    # Badge HTML mapping
-    badge_classes = {
-        "high": "badge-high",
-        "medium": "badge-medium",
-        "low": "badge-low",
-        "insufficient": "badge-insufficient"
-    }
-    badge_class = badge_classes.get(confidence, "badge-insufficient")
-    badge_html = f'<span class="badge {badge_class}">{confidence.upper()} CONFIDENCE</span>'
+    elif result is not None:
+        recommendation = result.get("recommendation", "")
+        evidence = result.get("evidence", "")
+        citations = result.get("citations", [])
+        confidence = str(result.get("confidence", "insufficient")).lower()
 
-    # --- 10. INSUFFICIENT EVIDENCE STATE ---
-    if confidence == "insufficient":
+        # Confidence Badge Mapping
+        if confidence == "high":
+            badge_html = '<span class="badge badge-high">🛡 HIGH CONFIDENCE</span>'
+        elif confidence in ["medium", "low"]:
+            badge_html = '<span class="badge badge-medium">⚠ MODERATE CONFIDENCE</span>'
+        else:
+            badge_html = '<span class="badge badge-insufficient">⚠ INSUFFICIENT EVIDENCE</span>'
+
+        # Safe Refusal Box when confidence is insufficient
+        if confidence == "insufficient":
+            st.markdown(
+                f"""
+                <div class="insufficient-box">
+                    <span style="font-size: 22px;">⚠️</span>
+                    <div>
+                        <strong>Insufficient Evidence</strong><br/>
+                        Insufficient evidence was found in the retrieved sources to answer this question.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        # FINAL ANSWER CARD
         st.markdown(
             f"""
-            <div class="insufficient-box">
-                <span style="font-size: 20px;">ℹ️</span>
-                <div>
-                    <strong>Insufficient Evidence</strong><br/>
-                    Insufficient evidence was found in the retrieved sources to answer this question.
+            <div class="answer-card">
+                <div class="card-header-row">
+                    <span class="card-header-label">FINAL ANSWER ({selected_language})</span>
+                    {badge_html}
+                </div>
+                <div class="recommendation-text">{recommendation}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # SUPPORTING EVIDENCE CARD
+        if evidence and confidence != "insufficient":
+            st.markdown(
+                f"""
+                <div class="evidence-card">
+                    <div class="card-header-row" style="margin-bottom: 12px; padding-bottom: 8px;">
+                        <span class="card-header-label" style="color: #8B5CF6;">📚 SUPPORTING EVIDENCE</span>
+                    </div>
+                    <div class="evidence-text">{evidence}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        # SOURCES / CITATIONS SECTION
+        if citations and confidence != "insufficient":
+            st.markdown(
+                """
+                <div class="card-header-label" style="margin-bottom: 10px; margin-top: 18px;">SOURCES & CITATIONS</div>
+                <div class="citation-grid">
+                """,
+                unsafe_allow_html=True
+            )
+
+            for cit in citations:
+                doc_name = cit.get("document", "Unknown Source")
+                section = cit.get("section")
+                page = cit.get("page")
+                url = cit.get("url")
+
+                meta_parts = []
+                
+                # MedlinePlus / URL source
+                if url and str(url).strip() not in ["None", "null", ""]:
+                    meta_parts.append("Source: MedlinePlus")
+                    if section and section != "N/A":
+                        meta_parts.append(f"Section: {section}")
+                    meta_str = " • ".join(meta_parts)
+
+                    st.markdown(
+                        f"""
+                        <div class="citation-card">
+                            <div class="citation-main">
+                                <span class="citation-doc">📄 {doc_name}</span>
+                                <span class="citation-meta">{meta_str}</span>
+                            </div>
+                            <a href="{url}" target="_blank" class="citation-link">Open Source ↗</a>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                else:
+                    # PDF Source
+                    if page is not None and str(page).strip() not in ["None", "null", ""]:
+                        meta_parts.append(f"Page {page}")
+                    if section and section != "N/A":
+                        meta_parts.append(f"Section: {section}")
+                    
+                    meta_str = " • ".join(meta_parts) if meta_parts else "PDF Document"
+
+                    st.markdown(
+                        f"""
+                        <div class="citation-card">
+                            <div class="citation-main">
+                                <span class="citation-doc">📘 {doc_name}</span>
+                                <span class="citation-meta">{meta_str}</span>
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    else:
+        # Default Empty State in Results Panel
+        st.markdown(
+            """
+            <div class="answer-card" style="text-align: center; padding: 48px 28px;">
+                <div style="font-size: 36px; margin-bottom: 12px;">📋</div>
+                <div style="font-weight: 700; font-size: 18px; color: #F8FAFC; margin-bottom: 8px;">
+                    Clinical Decision Support System
+                </div>
+                <div style="color: #94A3B8; font-size: 14px; max-width: 480px; margin: 0 auto; line-height: 1.6;">
+                    Select your response language and ask a clinical question to retrieve evidence-grounded medical information from WHO Guidelines and MedlinePlus.
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # --- 4. CLINICAL ANSWER SECTION ---
-    st.markdown(
-        f"""
-        <div class="answer-card">
-            <div class="section-title">
-                <span>Clinical Answer</span>
-                {badge_html}
-            </div>
-            <div class="recommendation-text">{recommendation}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # --- 6. SUPPORTING EVIDENCE SECTION ---
-    if evidence and confidence != "insufficient":
-        st.markdown(
-            f"""
-            <div class="section-title" style="margin-top: 24px;">Supporting Evidence</div>
-            <div class="evidence-card">
-                <div class="evidence-text">"{evidence}"</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # --- 7. SOURCES / CITATIONS SECTION ---
-    if citations and confidence != "insufficient":
-        st.markdown('<div class="section-title" style="margin-top: 24px;">Sources</div>', unsafe_allow_html=True)
-        st.markdown('<div class="citation-grid">', unsafe_allow_html=True)
-
-        for cit in citations:
-            doc_name = cit.get("document", "Unknown Source")
-            section = cit.get("section")
-            page = cit.get("page")
-            url = cit.get("url")
-
-            # PDF Source vs MedlinePlus Source handling
-            meta_parts = []
-            
-            # Check for MedlinePlus / URL source
-            if url:
-                meta_parts.append("Source: MedlinePlus")
-                if section and section != "N/A":
-                    meta_parts.append(f"Section: {section}")
-                meta_str = " • ".join(meta_parts)
-
-                st.markdown(
-                    f"""
-                    <div class="citation-card">
-                        <div class="citation-main">
-                            <span class="citation-doc">📄 {doc_name}</span>
-                            <span class="citation-meta">{meta_str}</span>
-                        </div>
-                        <a href="{url}" target="_blank" class="citation-link">Open Source ↗</a>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            else:
-                # PDF Source
-                if page is not None and str(page).strip() not in ["None", "null", ""]:
-                    meta_parts.append(f"Page {page}")
-                if section and section != "N/A":
-                    meta_parts.append(f"Section: {section}")
-                
-                meta_str = " • ".join(meta_parts) if meta_parts else "PDF Document"
-
-                st.markdown(
-                    f"""
-                    <div class="citation-card">
-                        <div class="citation-main">
-                            <span class="citation-doc">📘 {doc_name}</span>
-                            <span class="citation-meta">{meta_str}</span>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# --- 8. EMPTY STATE ---
-else:
-    st.markdown(
-        """
-        <div class="empty-state-card">
-            <div class="empty-state-icon">📋</div>
-            <div style="font-weight: 600; font-size: 17px; color: #1F2937; margin-bottom: 6px;">
-                Welcome to the Clinical RAG Assistant
-            </div>
-            <div class="empty-state-text">
-                Ask a clinical question to retrieve evidence-grounded information from trusted sources.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown('<div class="input-label" style="margin-bottom: 10px;">Suggested Questions:</div>', unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    cols = [col1, col2, col3]
-    for idx, q_text in enumerate(SAMPLE_QUESTIONS):
-        with cols[idx]:
-            st.button(
-                q_text,
-                key=f"sample_q_{idx}",
-                use_container_width=True,
-                on_click=handle_sample_click,
-                args=(q_text,)
-            )
-
-# --- 11. DISCLAIMER FOOTER ---
+# --- CLINICAL DISCLAIMER NOTICE ---
 st.markdown(
     """
-    <div class="disclaimer-box">
-        ⚠️ <strong>Clinical Notice:</strong> This system provides information grounded strictly in retrieved clinical sources and is not a substitute for professional medical advice, diagnosis, or treatment.
+    <div class="disclaimer-card">
+        <span style="font-size: 18px; color: #2F80ED;">ℹ️</span>
+        <div>
+            <strong>Clinical Notice:</strong> This system provides information grounded strictly in retrieved clinical sources and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </div>
     </div>
     """,
     unsafe_allow_html=True

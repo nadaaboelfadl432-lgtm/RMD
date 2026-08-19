@@ -15,12 +15,13 @@ from query import load_index, retrieve, print_results
 from generate import generate_grounded_answer
 
 
-def run_pipeline(question: str):
+def run_pipeline(question: str, language: str = "English"):
     """Executes the complete RAG pipeline: retrieval followed by grounded generation."""
     print("=" * 65)
     print(" === AI Clinical Decision Support Lite — End-to-End RAG Pipeline ===")
     print("=" * 65)
-    print(f"\nQuestion: {question}\n")
+    print(f"\nQuestion: {question}")
+    print(f"Language: {language}\n")
 
     # Step 1: Retrieval (Local Embeddings + ChromaDB)
     print("--- Step 1: Document Retrieval (ChromaDB) ---")
@@ -35,7 +36,7 @@ def run_pipeline(question: str):
 
     # Step 2: Generation (Gemini)
     print("--- Step 2: Grounded Generation (Gemini) ---")
-    response = generate_grounded_answer(question, results)
+    response = generate_grounded_answer(question, results, language=language)
 
     # Step 3: Formatted Output
     print("\n" + "=" * 65)

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            overflow: hidden;
+        }
+        .search-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        .search-input-box {
+            width: 100%;
+            height: 54px;
+            padding: 14px 18px;
+            font-size: 15.5px;
+            color: #F8FAFC;
+            background-color: #081728;
+            border: 1px solid rgba(47, 128, 237, 0.3);
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            text-align: start;
+        }
+        .search-input-box::placeholder {
+            color: #64748B;
+        }
+        .search-input-box:focus {
+            border-color: #2F80ED;
+            box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.25);
+            background-color: #0A1728;
+        }
+        .search-input-box.has-dropdown {
+            border-bottom-left-radius: 0px !important;
+            border-bottom-right-radius: 0px !important;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.25) !important;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #0D1D30;
+            border: 1px solid rgba(47, 128, 237, 0.3);
+            border-top: none;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+            z-index: 9999;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .dropdown-item {
+            padding: 11px 16px;
+            font-size: 14.5px;
+            color: #F8FAFC;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.12s ease, color 0.12s ease;
+            text-align: start;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-item:hover {
+            background-color: #0A1728;
+            color: #22D3EE;
+        }
+        .icon {
+            color: #22D3EE;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-wrapper">
+        <input type="text" id="searchInput" class="search-input-box" dir="auto" placeholder="Ask a clinical question..." autocomplete="off" spellcheck="false" />
+        <div id="autocompleteDropdown" class="dropdown-menu"></div>
+    </div>
+
+    <script>
+        // Inline Streamlit Component API for 100% offline local execution
+        const Streamlit = {
+            setComponentReady: function() {
+                window.dispatchEvent(new CustomEvent("streamlit:componentReady"));
+                this.postMessage({type: "streamlit:componentReady", apiVersion: 1});
+            },
+            setFrameHeight: function(height) {
+                this.postMessage({type: "streamlit:setFrameHeight", height: height});
+            },
+            setComponentValue: function(value) {
+                this.postMessage({type: "streamlit:setComponentValue", value: value});
+            },
+            postMessage: function(message) {
+                window.parent.postMessage(Object.assign({isStreamlitMessage: true}, message), "*");
+            }
+        };
+
+        const GROUNDED_QUESTIONS = [
+            "What are the symptoms of high blood pressure?",
+            "What are the symptoms of high blood pressure in pregnancy?",
+            "What are the symptoms of pulmonary hypertension?",
+            "Are there warning signs or symptoms associated with hypertension?",
+            "What blood pressure level does WHO recommend for starting treatment?",
+            "What are the recommended first-line drugs for hypertension treatment?",
+            "What combination drug therapy is recommended for blood pressure control?",
+            "When should pharmacological treatment for hypertension be started?",
+            "What is the target blood pressure according to the WHO guideline?",
+            "What is the target blood pressure for patients with known cardiovascular disease?",
+            "What blood pressure threshold should trigger starting medication?",
+            "What is considered normal vs high blood pressure?",
+            "What blood pressure threshold applies in pregnancy?",
+            "How is high blood pressure managed in pregnancy according to clinical guidelines?",
+            "What lifestyle interventions are recommended for managing hypertension?",
+            "How does dietary salt reduction affect blood pressure?",
+            "What non-pharmacological measures help lower blood pressure?",
+            "What are the cardiovascular risks associated with untreated hypertension?",
+            "How does high blood pressure affect heart and kidney health?",
+            "Which patient groups are at highest risk from high blood pressure?"
+        ];
+
+        const searchInput = document.getElementById("searchInput");
+        const dropdown = document.getElementById("autocompleteDropdown");
+        
+        let isComposing = false;
+        let isFocused = false;
+        let isSelectedJustNow = false;
+
+        searchInput.addEventListener("focus", function() {
+            isFocused = true;
+        });
+
+        searchInput.addEventListener("blur", function() {
+            isFocused = false;
+        });
+
+        searchInput.addEventListener("compositionstart", function() {
+            isComposing = true;
+        });
+
+        searchInput.addEventListener("compositionupdate", function() {
+            isComposing = true;
+        });
+
+        searchInput.addEventListener("compositionend", function(e) {
+            isComposing = false;
+            const val = searchInput.value;
+            Streamlit.setComponentValue(val);
+            updateSuggestions(val);
+        });
+
+        // Handle Streamlit render messages safely without overwriting active user typing
+        window.addEventListener("message", function(event) {
+            if (event.data && event.data.type === "streamlit:render") {
+                const args = event.data.args || {};
+                if (!isFocused && !isComposing && args.initial_value !== undefined && typeof args.initial_value === "string") {
+                    if (searchInput.value !== args.initial_value && !isSelectedJustNow) {
+                        searchInput.value = args.initial_value;
+                    }
+                }
+            }
+        });
+
+        function updateSuggestions(val) {
+            if (isComposing) return;
+
+            const rawVal = (val || "").trim();
+            if (!rawVal || isSelectedJustNow) {
+                dropdown.style.display = "none";
+                searchInput.classList.remove("has-dropdown");
+                Streamlit.setFrameHeight(58);
+                isSelectedJustNow = false;
+                return;
+            }
+
+            const query = rawVal.toLowerCase().normalize("NFC");
+
+            const matched = GROUNDED_QUESTIONS.filter(q => {
+                const qLower = q.toLowerCase().normalize("NFC");
+                if (qLower.includes(query)) return true;
+                const words = qLower.split(/\s+/);
+                return words.some(w => w.startsWith(query));
+            }).slice(0, 4);
+
+            if (matched.length === 0) {
+                dropdown.style.display = "none";
+                searchInput.classList.remove("has-dropdown");
+                Streamlit.setFrameHeight(58);
+                return;
+            }
+
+            dropdown.innerHTML = "";
+            matched.forEach(text => {
+                const item = document.createElement("div");
+                item.className = "dropdown-item";
+                item.setAttribute("dir", "auto");
+                item.innerHTML = `<span class="icon">🔍</span><span>${text}</span>`;
+                
+                item.addEventListener("mousedown", function(e) {
+                    e.preventDefault();
+                    searchInput.value = text;
+                    isSelectedJustNow = true;
+                    dropdown.style.display = "none";
+                    searchInput.classList.remove("has-dropdown");
+                    Streamlit.setComponentValue(text);
+                    Streamlit.setFrameHeight(58);
+                });
+                
+                dropdown.appendChild(item);
+            });
+
+            dropdown.style.display = "block";
+            searchInput.classList.add("has-dropdown");
+            const neededHeight = 58 + dropdown.offsetHeight + 10;
+            Streamlit.setFrameHeight(Math.min(neededHeight, 260));
+        }
+
+        searchInput.addEventListener("input", function(e) {
+            if (isComposing) return;
+            isSelectedJustNow = false;
+            const val = searchInput.value;
+            Streamlit.setComponentValue(val);
+            updateSuggestions(val);
+        });
+
+        searchInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && !isComposing) {
+                dropdown.style.display = "none";
+                searchInput.classList.remove("has-dropdown");
+                Streamlit.setComponentValue(searchInput.value);
+                Streamlit.setFrameHeight(58);
+            }
+        });
+
+        document.addEventListener("click", function(e) {
+            if (!e.target.closest(".search-wrapper")) {
+                dropdown.style.display = "none";
+                searchInput.classList.remove("has-dropdown");
+                Streamlit.setFrameHeight(58);
+            }
+        });
+
+        window.addEventListener("load", function() {
+            Streamlit.setComponentReady();
+            Streamlit.setFrameHeight(58);
+        });
+    </script>
+</body>
+</html>

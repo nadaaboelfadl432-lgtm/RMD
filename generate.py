@@ -56,8 +56,8 @@ class CitationModel(BaseModel):
     )
 
 class GroundedResponseModel(BaseModel):
-    recommendation: str = Field(description="Direct clinical answer or refusal message")
-    evidence: str = Field(default="", description="Exact supporting text excerpt, or empty string if insufficient")
+    recommendation: str = Field(description="Direct clinical answer or refusal message in requested language")
+    evidence: str = Field(default="", description="Concise explanatory summary of supporting retrieved text in requested language, or empty string if insufficient")
     citations: List[CitationModel] = Field(default_factory=list, description="List of source citations, empty if insufficient")
     confidence: Literal["high", "medium", "low", "insufficient"] = Field(description="Confidence level")
 
@@ -142,9 +142,10 @@ def validate_citations(response: dict, retrieved_results: list) -> bool:
     return True
 
 
-def generate_grounded_answer(question: str, retrieved_results: list) -> dict:
-    """Generates a grounded answer using Gemini constrained by structured output
-    and validates both the schema and citations before returning.
+def generate_grounded_answer(question: str, retrieved_results: list, language: str = "English") -> dict:
+    """Generates a grounded answer using Gemini constrained by structured output,
+    translating recommendations and evidence summaries to the requested language
+    while keeping citation metadata completely intact and untranslated.
     """
     # 1. Validate API Key
     api_key = config.GEMINI_API_KEY
@@ -170,6 +171,11 @@ def generate_grounded_answer(question: str, retrieved_results: list) -> dict:
     # 4. Construct grounded prompt with strict instructions
     prompt = f"""You are a clinical decision support AI assistant. Your task is to answer the user's clinical question based strictly and ONLY on the provided Context below.
 
+LANGUAGE & TRANSLATION INSTRUCTION:
+- Target Output Language: {language}
+- The "recommendation" and "evidence" fields MUST be written in {language}.
+- CRITICAL: Do NOT translate, modify, or alter citation metadata. The "document", "section", "page", and "url" values in "citations" MUST remain exactly in their original English form as provided in the Context metadata.
+
 CRITICAL GROUNDING RULES:
 
 1. Answer ONLY using information directly supported by the provided Context.
@@ -187,14 +193,13 @@ CRITICAL GROUNDING RULES:
 
 4. If the Context does NOT contain sufficient evidence to answer the question:
    - Set "confidence" to "insufficient".
-   - Set "recommendation" to a concise statement explaining that the available source evidence is insufficient to answer the question.
+   - Set "recommendation" to a concise refusal statement in {language} explaining that the available source evidence is insufficient to answer the question.
    - Set "evidence" to "".
    - Set "citations" to [].
 
 5. If the Context contains sufficient evidence:
-   - Provide a direct answer in "recommendation".
-   - Base the answer only on the retrieved Context.
-   - Provide supporting text in "evidence" by quoting or lightly trimming text that is directly present in the Context.
+   - Provide a direct clinical answer in "recommendation" written in {language}.
+   - Provide a concise, explanatory summary of the supporting evidence in "evidence" written in {language} (make it shorter, clearer, and more explanatory than raw excerpts, but strictly grounded in the Context).
    - Do not add information that is not supported by the Context.
 
 6. Citation rules:
@@ -224,7 +229,7 @@ CRITICAL GROUNDING RULES:
     - "insufficient": The Context does not provide enough evidence to answer safely.
 
 11. If confidence is "insufficient":
-    - recommendation must clearly state that the retrieved evidence is insufficient.
+    - recommendation must clearly state in {language} that the retrieved evidence is insufficient.
     - evidence must be "".
     - citations must be [].
 

@@ -23,9 +23,9 @@ CHUNK_OVERLAP = 50
 
 # --- Embeddings ---
 # "local"  -> free, runs on your machine, lightweight, no API key needed (default)
-# "openai" -> optional, requires OPENAI_API_KEY in .env
+# Note: Changing LOCAL_EMBEDDING_MODEL requires rebuilding ChromaDB via `python ingest.py`
 EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "local")
-LOCAL_EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
+LOCAL_EMBEDDING_MODEL = os.getenv("LOCAL_EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 
 # --- Retrieval ---

@@ -14,7 +14,7 @@
     },
     "evidence": {
       "type": "string",
-      "description": "The exact retrieved excerpt(s) that support the recommendation, quoted or lightly trimmed — not paraphrased away from the source wording. Empty only when confidence is 'insufficient' (a refusal)."
+      "description": "A concise, explanatory summary of the retrieved evidence supporting the recommendation, strictly grounded in the retrieved text. Empty only when confidence is 'insufficient' (a refusal)."
     },
   "citations": {
   "type": "array",
