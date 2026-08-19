@@ -8,73 +8,144 @@
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
         }
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             background: transparent;
-            overflow: hidden;
+            width: 100%;
+            overflow: visible;
+        }
+        .search-container-box {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
         .search-wrapper {
             width: 100%;
+            min-height: 155px;
             position: relative;
-        }
-        .search-input-box {
-            width: 100%;
-            height: 54px;
-            padding: 14px 18px;
-            font-size: 15.5px;
-            color: #F8FAFC;
             background-color: #081728;
-            border: 1px solid rgba(47, 128, 237, 0.3);
-            border-radius: 12px;
-            outline: none;
-            transition: all 0.15s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-            text-align: start;
+            border: 1px solid rgba(47, 128, 237, 0.35);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+            display: flex;
+            flex-direction: column;
         }
-        .search-input-box::placeholder {
-            color: #64748B;
-        }
-        .search-input-box:focus {
+        .search-wrapper:focus-within {
             border-color: #2F80ED;
-            box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.25);
+            box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.25), 0 6px 20px rgba(0, 0, 0, 0.35);
             background-color: #0A1728;
         }
-        .search-input-box.has-dropdown {
+        .search-wrapper.has-dropdown {
             border-bottom-left-radius: 0px !important;
             border-bottom-right-radius: 0px !important;
             border-bottom: 1px dashed rgba(148, 163, 184, 0.25) !important;
         }
+        .textarea-container {
+            position: relative;
+            width: 100%;
+            min-height: 150px;
+            display: flex;
+            align-items: flex-end;
+        }
+        .search-textarea {
+            width: 100%;
+            min-height: 145px;
+            max-height: 240px;
+            padding: 16px 64px 16px 18px;
+            font-size: 15px;
+            line-height: 1.55;
+            color: #F8FAFC;
+            background: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .search-textarea::placeholder {
+            color: #64748B;
+            font-size: 14.5px;
+        }
+        .search-textarea[dir="rtl"] {
+            padding: 16px 18px 16px 64px;
+        }
+
+        /* Embedded Send / Ask Action Button */
+        .submit-btn {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2F80ED 0%, #7C3AED 100%);
+            border: none;
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(47, 128, 237, 0.35);
+            transition: all 0.2s ease;
+            z-index: 10;
+            outline: none;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .submit-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(47, 128, 237, 0.5);
+        }
+        .submit-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(47, 128, 237, 0.3);
+        }
+
+        /* Normal Document Flow Autocomplete Dropdown */
         .dropdown-menu {
             display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
+            width: 100%;
             background: #0D1D30;
-            border: 1px solid rgba(47, 128, 237, 0.3);
+            border: 1px solid rgba(47, 128, 237, 0.35);
             border-top: none;
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
             z-index: 9999;
-            max-height: 220px;
-            overflow-y: auto;
+            overflow: visible;
+            margin-top: -1px;
         }
         .dropdown-item {
-            padding: 11px 16px;
+            padding: 13px 16px;
+            min-height: 44px;
             font-size: 14.5px;
+            line-height: 1.45;
             color: #F8FAFC;
             cursor: pointer;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 12px;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
             transition: background 0.12s ease, color 0.12s ease;
             text-align: start;
         }
         .dropdown-item:last-child {
             border-bottom: none;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
         }
         .dropdown-item:hover {
             background-color: #0A1728;
@@ -82,19 +153,64 @@
         }
         .icon {
             color: #22D3EE;
-            font-size: 13px;
+            font-size: 14px;
             flex-shrink: 0;
+            margin-top: 2px;
+        }
+        /* Light Theme Overrides */
+        body.light-theme .search-wrapper {
+            background-color: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        }
+        body.light-theme .search-wrapper:focus-within {
+            border-color: #0284C7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2), 0 6px 20px rgba(15, 23, 42, 0.1);
+            background-color: #FFFFFF;
+        }
+        body.light-theme .search-textarea {
+            color: #0F172A;
+        }
+        body.light-theme .search-textarea::placeholder {
+            color: #94A3B8;
+        }
+        body.light-theme .submit-btn {
+            background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+        body.light-theme .submit-btn:hover {
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.45);
+        }
+        body.light-theme .dropdown-menu {
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+        }
+        body.light-theme .dropdown-item {
+            color: #0F172A;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        body.light-theme .dropdown-item:hover {
+            background-color: #F1F5F9;
+            color: #0284C7;
+        }
+        body.light-theme .icon {
+            color: #0284C7;
         }
     </style>
 </head>
 <body>
-    <div class="search-wrapper">
-        <input type="text" id="searchInput" class="search-input-box" dir="auto" placeholder="Ask a clinical question..." autocomplete="off" spellcheck="false" />
+    <div class="search-container-box">
+        <div id="searchWrapper" class="search-wrapper">
+            <div class="textarea-container">
+                <textarea id="searchInput" class="search-textarea" dir="auto" placeholder="Ask a clinical question..." autocomplete="off" spellcheck="false"></textarea>
+                <button type="button" id="submitBtn" class="submit-btn" title="Submit Question">↑</button>
+            </div>
+        </div>
         <div id="autocompleteDropdown" class="dropdown-menu"></div>
     </div>
 
     <script>
-        // Inline Streamlit Component API for 100% offline local execution
         const Streamlit = {
             setComponentReady: function() {
                 window.dispatchEvent(new CustomEvent("streamlit:componentReady"));
@@ -134,12 +250,44 @@
             "Which patient groups are at highest risk from high blood pressure?"
         ];
 
+        const searchWrapper = document.getElementById("searchWrapper");
         const searchInput = document.getElementById("searchInput");
+        const submitBtn = document.getElementById("submitBtn");
         const dropdown = document.getElementById("autocompleteDropdown");
         
         let isComposing = false;
         let isFocused = false;
         let isSelectedJustNow = false;
+
+        function resizeComponent() {
+            requestAnimationFrame(function() {
+                const bodyH = document.body.scrollHeight || document.documentElement.scrollHeight || 175;
+                const wrapperH = searchWrapper ? searchWrapper.offsetHeight : 165;
+                const dropH = (dropdown && dropdown.style.display === "block") ? (dropdown.scrollHeight || dropdown.offsetHeight || 0) : 0;
+                const needed = Math.max(bodyH, wrapperH + dropH + 16, 175);
+                Streamlit.setFrameHeight(needed);
+            });
+        }
+
+        function autoResize() {
+            if (!searchInput) return;
+            searchInput.style.height = "145px";
+            const scrollH = searchInput.scrollHeight;
+            if (scrollH > 145) {
+                searchInput.style.height = Math.min(scrollH, 240) + "px";
+            }
+            resizeComponent();
+        }
+
+        function sendValue(isSubmitted) {
+            if (!searchInput) return;
+            const val = searchInput.value;
+            Streamlit.setComponentValue({
+                query: val,
+                submitted: isSubmitted,
+                timestamp: Date.now()
+            });
+        }
 
         searchInput.addEventListener("focus", function() {
             isFocused = true;
@@ -159,18 +307,23 @@
 
         searchInput.addEventListener("compositionend", function(e) {
             isComposing = false;
-            const val = searchInput.value;
-            Streamlit.setComponentValue(val);
-            updateSuggestions(val);
+            autoResize();
+            sendValue(false);
+            updateSuggestions(searchInput.value);
         });
 
-        // Handle Streamlit render messages safely without overwriting active user typing
         window.addEventListener("message", function(event) {
             if (event.data && event.data.type === "streamlit:render") {
                 const args = event.data.args || {};
+                if (args.theme === "light") {
+                    document.body.classList.add("light-theme");
+                } else {
+                    document.body.classList.remove("light-theme");
+                }
                 if (!isFocused && !isComposing && args.initial_value !== undefined && typeof args.initial_value === "string") {
                     if (searchInput.value !== args.initial_value && !isSelectedJustNow) {
                         searchInput.value = args.initial_value;
+                        autoResize();
                     }
                 }
             }
@@ -182,8 +335,8 @@
             const rawVal = (val || "").trim();
             if (!rawVal || isSelectedJustNow) {
                 dropdown.style.display = "none";
-                searchInput.classList.remove("has-dropdown");
-                Streamlit.setFrameHeight(58);
+                searchWrapper.classList.remove("has-dropdown");
+                resizeComponent();
                 isSelectedJustNow = false;
                 return;
             }
@@ -199,8 +352,8 @@
 
             if (matched.length === 0) {
                 dropdown.style.display = "none";
-                searchInput.classList.remove("has-dropdown");
-                Streamlit.setFrameHeight(58);
+                searchWrapper.classList.remove("has-dropdown");
+                resizeComponent();
                 return;
             }
 
@@ -216,49 +369,57 @@
                     searchInput.value = text;
                     isSelectedJustNow = true;
                     dropdown.style.display = "none";
-                    searchInput.classList.remove("has-dropdown");
-                    Streamlit.setComponentValue(text);
-                    Streamlit.setFrameHeight(58);
+                    searchWrapper.classList.remove("has-dropdown");
+                    autoResize();
+                    sendValue(false);
+                    resizeComponent();
                 });
                 
                 dropdown.appendChild(item);
             });
 
             dropdown.style.display = "block";
-            searchInput.classList.add("has-dropdown");
-            const neededHeight = 58 + dropdown.offsetHeight + 10;
-            Streamlit.setFrameHeight(Math.min(neededHeight, 260));
+            searchWrapper.classList.add("has-dropdown");
+            resizeComponent();
         }
 
         searchInput.addEventListener("input", function(e) {
             if (isComposing) return;
             isSelectedJustNow = false;
-            const val = searchInput.value;
-            Streamlit.setComponentValue(val);
-            updateSuggestions(val);
+            autoResize();
+            sendValue(false);
+            updateSuggestions(searchInput.value);
         });
 
         searchInput.addEventListener("keydown", function(e) {
-            if (e.key === "Enter" && !isComposing) {
+            if (e.key === "Enter" && !e.shiftKey && !isComposing) {
+                e.preventDefault();
                 dropdown.style.display = "none";
-                searchInput.classList.remove("has-dropdown");
-                Streamlit.setComponentValue(searchInput.value);
-                Streamlit.setFrameHeight(58);
+                searchWrapper.classList.remove("has-dropdown");
+                sendValue(true);
+                resizeComponent();
             }
+        });
+
+        submitBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            dropdown.style.display = "none";
+            searchWrapper.classList.remove("has-dropdown");
+            sendValue(true);
+            resizeComponent();
         });
 
         document.addEventListener("click", function(e) {
-            if (!e.target.closest(".search-wrapper")) {
+            if (!e.target.closest(".search-container-box")) {
                 dropdown.style.display = "none";
-                searchInput.classList.remove("has-dropdown");
-                Streamlit.setFrameHeight(58);
+                searchWrapper.classList.remove("has-dropdown");
+                resizeComponent();
             }
         });
 
-        window.addEventListener("load", function() {
-            Streamlit.setComponentReady();
-            Streamlit.setFrameHeight(58);
-        });
+        Streamlit.setFrameHeight(175);
+        Streamlit.setComponentReady();
+        autoResize();
     </script>
 </body>
 </html>
