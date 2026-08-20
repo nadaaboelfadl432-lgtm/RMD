@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Clinical Decision Support Lite — Hackathon Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #06111F;
+    --card-bg: #0D1D30;
+    --card-border: rgba(148, 163, 184, 0.15);
+    --primary-cyan: #22D3EE;
+    --primary-blue: #0284C7;
+    --accent-purple: #8B5CF6;
+    --accent-green: #22C55E;
+    --accent-amber: #F59E0B;
+    --accent-red: #EF4444;
+    --text-white: #F8FAFC;
+    --text-muted: #94A3B8;
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    font-family: var(--font-main);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Presentation Container */
+  .presentation {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Slide Base */
+  .slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 3rem 5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: scale(0.97);
+    background-image: 
+      radial-gradient(circle at 85% 8%, rgba(34, 211, 238, 0.06) 0%, transparent 45%),
+      radial-gradient(circle at 12% 90%, rgba(139, 92, 246, 0.05) 0%, transparent 45%);
+  }
+
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+
+  /* Slide Header */
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+  }
+
+  .slide-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    color: var(--primary-cyan);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .presenter-badge {
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    color: var(--accent-purple);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .slide-title {
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: var(--text-white);
+    letter-spacing: -0.5px;
+    margin-bottom: 0.3rem;
+  }
+
+  .slide-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* Slide Body Layouts */
+  .slide-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.3rem;
+    margin-top: 0.8rem;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  /* Styled Cards */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease;
+  }
+
+  .card:hover {
+    border-color: rgba(34, 211, 238, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.8rem;
+  }
+
+  .card-icon {
+    font-size: 1.5rem;
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-white);
+  }
+
+  .card-text {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  /* Highlight Banner */
+  .quote-banner {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(139, 92, 246, 0.08));
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    border-radius: 14px;
+    padding: 1.1rem 1.6rem;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-cyan);
+  }
+
+  /* Flow Diagram */
+  .pipeline-flow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.6rem 1.2rem;
+  }
+
+  .flow-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .flow-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(34, 211, 238, 0.12);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    color: var(--primary-cyan);
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flow-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-white);
+  }
+
+  .flow-arrow {
+    color: var(--primary-cyan);
+    font-size: 1.3rem;
+    font-weight: bold;
+    opacity: 0.7;
+  }
+
+  /* Table Style */
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .comp-table th, .comp-table td {
+    padding: 0.9rem 1.3rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  }
+
+  .comp-table th {
+    background: rgba(15, 23, 42, 0.6);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary-cyan);
+  }
+
+  .comp-table td {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .comp-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .comp-table td.highlight {
+    color: var(--text-white);
+    font-weight: 600;
+  }
+
+  /* Image Wrapper */
+  .img-wrapper {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .img-wrapper img {
+    width: 100%;
+    display: block;
+  }
+
+  /* Speaker Notes Bar & Navigation Controls */
+  .nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: 60px;
+    background: #040A14;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    z-index: 100;
+  }
+
+  .nav-btn {
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    color: var(--primary-cyan);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover {
+    background: rgba(34, 211, 238, 0.25);
+    color: #FFF;
+  }
+
+  .slide-counter {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-cyan), var(--accent-purple));
+    width: 10%;
+    transition: width 0.3s ease;
+    z-index: 101;
+  }
+
+  .speaker-notes-panel {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 900px;
+    background: rgba(13, 29, 48, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--primary-cyan);
+    border-radius: 12px 12px 0 0;
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    color: #E2E8F0;
+    display: none;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+    z-index: 99;
+  }
+
+  .speaker-notes-panel.active {
+    display: block;
+  }
+
+  .tag-red { color: var(--accent-red); }
+  .tag-green { color: var(--accent-green); }
+  .tag-amber { color: var(--accent-amber); }
+
+  ul.clean-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  ul.clean-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    color: var(--text-white);
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="presentation">
+
+  <!-- SLIDE 1: INTRODUCTION -->
+  <div class="slide active" id="slide1">
+    <div class="slide-header">
+      <span class="slide-tag">✨ Clinical AI Hackathon</span>
+      <span class="presenter-badge">🎤 Rania Mohamed (~30s)</span>
+    </div>
+    
+    <div class="slide-body grid-2" style="align-items: center;">
+      <div>
+        <h1 class="slide-title" style="font-size: 3.1rem; line-height: 1.15;">AI Clinical Decision Support <span style="color: var(--primary-cyan);">Lite</span></h1>
+        <p class="slide-subtitle" style="font-size: 1.25rem; margin-top: 0.6rem; margin-bottom: 1.8rem;">Evidence-Grounded Multilingual Clinical Assistant</p>
+        
+        <div class="card" style="background: rgba(13, 29, 48, 0.8); margin-bottom: 1.3rem;">
+          <div class="card-title" style="font-size: 0.9rem; color: var(--primary-cyan); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Presenting Team</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1.05rem; font-weight: 600;">
+            <div>👤 Rania Mohamed</div>
+            <div>👤 Menna Abo El Fadl</div>
+            <div>👤 Rofaida Ashraf</div>
+            <div>👤 Doha Mahmoud</div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 12px; align-items: center;">
+          <span style="background: rgba(34, 211, 238, 0.1); padding: 4px 10px; border-radius: 6px; color: var(--primary-cyan);">RAG System</span>
+          <span style="background: rgba(139, 92, 246, 0.1); padding: 4px 10px; border-radius: 6px; color: var(--accent-purple);">Gemini Generation</span>
+          <span style="background: rgba(34, 197, 94, 0.1); padding: 4px 10px; border-radius: 6px; color: var(--accent-green);">Zero Hallucinations</span>
+        </div>
+      </div>
+
+      <div class="img-wrapper">
+        <img src="dashboard_screenshot.png" alt="Clinical AI Dashboard Screenshot">
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: THE PROBLEM -->
+  <div class="slide" id="slide2">
+    <div class="slide-header">
+      <div>
+        <h2 class="slide-title">The Problem</h2>
+        <p class="slide-subtitle">Search friction and hallucinated AI answers present high risks in healthcare</p>
+      </div>
+      <span class="presenter-badge">🎤 Rania Mohamed (~1m)</span>
+    </div>
+
+    <div class="slide-body" style="gap: 1.2rem;">
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--accent-amber);">
+          <div class="card-header">
+            <div class="card-icon">📚</div>
+            <div class="card-title">Information Overload</div>
+          </div>
+          <p class="card-text">Medical information is vast and difficult to search quickly. Finding relevant evidence in dense clinical guidelines takes valuable time.</p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--accent-red);">
+          <div class="card-header">
+            <div class="card-icon">⚠</div>
+            <div class="card-title">Generic AI Risks</div>
+          </div>
+          <p class="card-text">Standard AI models generate answers from parametric memory, producing unsupported, ungrounded, or unverifiable medical information.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--accent-red);">
+          <div class="card-header">
+            <div class="card-icon">❌</div>
+            <div class="card-title">High Risk in Healthcare</div>
+          </div>
+          <p class="card-text">Hallucinated information in medical contexts is dangerous. Clinical questions require strict evidence, traceability, and verified sources.</p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--primary-cyan);">
+          <div class="card-header">
+            <div class="card-icon">🎯</div>
+            <div class="card-title">Need for Grounding</div>
+          </div>
+          <p class="card-text">Users require concise answers explicitly grounded in reliable evidence and directly traceable to clinical guidelines.</p>
+        </div>
+      </div>
+
+      <div class="quote-banner">
+        "How can we make AI-generated clinical answers more reliable and evidence-based?"
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: WHY THIS MATTERS -->
+  <div class="slide" id="slide3">
+    <div class="slide-header">
+      <div>
+        <h2 class="slide-title">Why Does This Solution Matter?</h2>
+        <p class="slide-subtitle">Combining answer speed with verified medical evidence</p>
+      </div>
+      <span class="presenter-badge">🎤 Rania Mohamed (~1m)</span>
+    </div>
+
+    <div class="slide-body">
+      <div class="grid-3" style="gap: 1.5rem;">
+        <div class="card" style="background: rgba(15, 23, 42, 0.8); border-color: rgba(239, 68, 68, 0.3);">
+          <div class="card-title" style="color: var(--accent-red); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;">
+            <span>🔎</span> TRADITIONAL SEARCH
+          </div>
+          <ul class="clean-list" style="font-size: 0.92rem;">
+            <li><span class="tag-red">🔎</span> Too much information</li>
+            <li><span class="tag-red">⏱</span> Time-consuming lookup</li>
+            <li><span class="tag-red">📚</span> Hard to identify evidence</li>
+          </ul>
+        </div>
+
+        <div class="card" style="background: rgba(15, 23, 42, 0.8); border-color: rgba(245, 158, 11, 0.3);">
+          <div class="card-title" style="color: var(--accent-amber); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;">
+            <span>🤖</span> GENERIC AI
+          </div>
+          <ul class="clean-list" style="font-size: 0.92rem;">
+            <li><span class="tag-green">🤖</span> Fast natural answers</li>
+            <li><span class="tag-red">⚠</span> Possible hallucinations</li>
+            <li><span class="tag-red">❌</span> Sources unclear / unverified</li>
+          </ul>
+        </div>
+
+        <div class="card" style="background: rgba(15, 23, 42, 0.9); border-color: var(--primary-cyan);">
+          <div class="card-title" style="color: var(--primary-cyan); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;">
+            <span>🎯</span> OUR GOAL
+          </div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: #FFF; text-align: center; margin-top: 0.6rem; display: flex; flex-direction: column; gap: 6px;">
+            <span style="color: var(--primary-cyan);">⚡ FAST</span>
+            <span style="color: var(--accent-purple);">🎯 GROUNDED</span>
+            <span style="color: var(--accent-green);">🔗 TRACEABLE</span>
+            <span style="color: var(--accent-amber);">🛡 SAFE</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote-banner" style="margin-top: 0.5rem;">
+        "Healthcare questions require answers that are not only fast, but also evidence-based and traceable."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: OUR PROPOSED SOLUTION -->
+  <div class="slide" id="slide4">
+    <div class="slide-header">
+      <div>
+        <h2 class="slide-title">Our Proposed Solution</h2>
+        <p class="slide-subtitle">Retrieval-Augmented Generation for evidence-grounded synthesis</p>
+      </div>
+      <span class="presenter-badge">🎤 Menna Abo El Fadl (~1m)</span>
+    </div>
+
+    <div class="slide-body">
+      <div class="pipeline-flow">
+        <div class="flow-step">
+          <div class="flow-icon">❓</div>
+          <div class="flow-label">1. Clinical Question</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+          <div class="flow-icon">🔎</div>
+          <div class="flow-label">2. Retrieve Evidence</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+          <div class="flow-icon">⚡</div>
+          <div class="flow-label">3. RAG Retrieval</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+          <div class="flow-icon">🧠</div>
+          <div class="flow-label">4. Gemini Generation</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+          <div class="flow-icon">🎯</div>
+          <div class="flow-label">5. Grounded Answer</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+          <div class="flow-icon">🔗</div>
+          <div class="flow-label">6. Sources + Confidence</div>
+        </div>
+      </div>
+
+      <div class="quote-banner" style="background: rgba(13, 29, 48, 0.9); border-color: rgba(139, 92, 246, 0.4); font-size: 1.25rem;">
+        "We retrieve the evidence first, then generate the answer strictly from that evidence."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: WHY PEOPLE NEED IT -->
+  <div class="slide" id="slide5">
+    <div class="slide-header">
+      <div>
+        <h2 class="slide-title">Who Can Benefit From Our Solution?</h2>
+        <p class="slide-subtitle">Delivering distinct user value across three healthcare groups</p>
+      </div>
+      <span class="presenter-badge">🎤 Menna Abo El Fadl (~1m)</span>
+    </div>
+
+    <div class="slide-body">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🩺</div>
+            <div class="card-title">Healthcare Professionals</div>
+          </div>
+          <p class="card-text">
+            • Faster access to relevant evidence<br>
+            • Easier source tracing during rounds<br>
+            • Concise guideline synthesis
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🎓</div>
+            <div class="card-title">Medical Students</div>
+          </div>
+          <p class="card-text">
+            • Evidence-based learning support<br>
+            • Quick access to clinical info<br>
+            • Reliable study verification
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">👥</div>
+            <div class="card-title">Health Info Seekers</div>
+          </div>
+          <p class="card-text">
+            • Structured, readable answers<br>
+            • Clear supporting evidence<br>
+            • Full source transparency
+          </p>
+        </div>
+      </div>
+
+      <div style="background: rgba(13, 29, 48, 0.9); border: 1px solid var(--primary-cyan); border-radius: 14px; padding: 1.2rem; display: flex; justify-content: space-around; align-items: center; text-align: center;">
+        <div style="color: var(--accent-green); font-weight: 700; font-size: 1.05rem;">
+          <span style="color: var(--text-muted); font-size: 0.85rem; display: block; text-transform: uppercase;">OUR VALUE STREAM</span>
+          Search ➔ Evidence ➔ Answer
+        </div>
+        <div style="color: var(--text-muted); font-size: 1.2rem;">VS</div>
+        <div style="color: var(--accent-red); font-weight: 600; font-size: 0.95rem;">
+          <span style="color: var(--text-muted); font-size: 0.85rem; display: block; text-transform: uppercase;">TRADITIONAL FRICTION</span>
+          Search ➔ Thousands of results ➔ Manual filtering
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: TECHNOLOGY USED -->
+  <div class="slide" id="slide6">
+    <div class="slide-header">
+      <div>
+        <h2 class="slide-title">Technology Stack</h2>
+        <p class="slide-subtitle">Modern technical architecture for local retrieval & grounded LLM generation</p>
+      </div>
+      <span class="presenter-badge">🎤 Rofaida Ashraf (~1m)</span>
+    </div>
+
+    <div class="slide-body grid-2" style="grid-template-columns: 1.8fr 1fr; gap: 1.5rem;">
+      <div class="card" style="background: rgba(13, 29, 48, 0.9);">
+        <div class="card-title" style="color: var(--primary-cyan); margin-bottom: 0.8rem; font-size: 0.95rem; text-transform: uppercase;">Technical Data Flow</div>
+        <div class="pipeline-flow" style="padding: 1.2rem 0.8rem;">
+          <div class="flow-step">
+            <div class="flow-icon">📖</div>
+            <div class="flow-label">Medical Docs</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <div class="flow-icon">🧠</div>
+            <div class="flow-label">FastEmbed</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <div class="flow-icon">⚡</div>
+            <div class="flow-label">ChromaDB</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <div class="flow-icon">🔍</div>
+            <div class="flow-label">Retrieval</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <div class="flow-icon">✨</div>
+            <div class="flow-label">Gemini</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <div class="flow-icon">📋</div>
+            <div class="flow-label">Structured JSON</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="background: rgba(13, 29, 48, 0.9);">
+        <div class="card-title" style="color: var(--accent-purple); margin-bottom: 0.8rem; font-size: 0.95rem; text-transform: uppercase;">Core Tech Stack</div>
+        <ul class="clean-list" style="font-size: 0.88rem; gap: 8px;">
+          <li><span style="color: var(--primary-cyan);">💻 Frontend:</span> Streamlit (Dark/Light UI)</li>
+          <li><span style="color: var(--primary-cyan);">🐍 Language:</span> Python 3.14</li>
+          <li><span style="color: var(--primary-cyan);">⚡ Vector DB:</span> ChromaDB</li>
+          <li><span style="color: var(--primary-cyan);">🧠 Embeddings:</span> FastEmbed (bge-small)</li>
+          <li><span style="color: var(--primary-cyan);">✨ LLM Model:</span> Google Gemini</li>
+          <li><span style="color: var(--primary-cyan);">📖 Sources:</span> WHO & MedlinePlus</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: TECHNICAL IMPLEMENTATION -->
+  <div class="slide" id="slide7">
+    <div class="slide-header">
+      <div>
+        <h2 class="slide-title">What Did We Build?</h2>
+        <p class="slide-subtitle">10-step end-to-end engineering pipeline & structured output schema</p>
+      </div>
+      <span class="presenter-badge">🎤 Rofaida Ashraf (~1.5m)</span>
+    </div>
+
+    <div class="slide-body grid-2" style="grid-template-columns: 1.8fr 1fr; gap: 1.5rem;">
+      <div class="card" style="background: rgba(13, 29, 48, 0.9);">
+        <div class="card-title" style="color: var(--primary-cyan); margin-bottom: 0.8rem; font-size: 0.95rem; text-transform: uppercase;">Complete 10-Step Pipeline</div>
+        <div style="font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; color: #CBD5E1; background: rgba(6, 17, 31, 0.8); padding: 0.8rem; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.15);">
+          1. Document Ingestion (WHO & MedlinePlus Guidelines)<br>
+          └─► 2. PDF / Medical Content Parsing<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└─► 3. Text Chunking (Chunk size=1000, overlap=150)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► 4. Embedding Generation (BAAI/bge-small-en-v1.5)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► 5. ChromaDB Vector Storage<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► 6. Similarity Retrieval (Cosine Distance)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► 7. Context Construction & Prompt Boundaries<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► 8. Gemini Grounded Generation<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► 9. Structured JSON Response Validation<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► 10. UI Presentation (Streamlit Dashboard)
+        </div>
+      </div>
+
+      <div class="card" style="background: rgba(13, 29, 48, 0.9);">
+        <div class="card-title" style="color: var(--accent-green); margin-bottom: 0.8rem; font-size: 0.95rem; text-transform: uppercase;">Enforced Output Schema</div>
+        <ul class="clean-list" style="font-size: 0.9rem; gap: 12px;">
+          <li>🎯 <b>Recommendation:</b> Concise clinical answer</li>
+          <li>📑 <b>Evidence:</b> Synthesized supporting text</li>
+          <li>🔗 <b>Citations:</b> Document title & page number</li>
+          <li>🛡 <b>Confidence:</b> HIGH / MEDIUM / INSUFFICIENT</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: KEY FEATURES & CLINICAL SAFETY -->
+  <div class="slide" id="slide8">
+    <div class="slide-header" style="margin-bottom: 0.6rem;">
+      <div>
+        <h2 class="slide-title">Key Features & Clinical Safety</h2>
+        <p class="slide-subtitle">Multilingual • Smart • Analytical • Safe • Evidence-Grounded</p>
+      </div>
+      <span class="presenter-badge">🎤 Rofaida Ashraf (~1m)</span>
+    </div>
+
+    <div class="slide-body" style="gap: 0.7rem; margin-top: 0.2rem;">
+      <!-- 2x3 Feature Grid -->
+      <div class="grid-3" style="grid-template-rows: repeat(2, 1fr); gap: 0.8rem;">
+        
+        <!-- Feature 1 -->
+        <div class="card" style="padding: 0.9rem 1.1rem; background: rgba(13, 29, 48, 0.9);">
+          <div class="card-header" style="margin-bottom: 0.4rem; gap: 8px;">
+            <div class="card-icon" style="width: 32px; height: 32px; font-size: 1.05rem;">🩺</div>
+            <div class="card-title" style="font-size: 0.92rem;">Clinical Decision Support</div>
+          </div>
+          <p class="card-text" style="font-size: 0.78rem; line-height: 1.4;">
+            Evidence-based answers from WHO & MedlinePlus. Confidence ratings: <span style="color: var(--accent-green); font-weight: 600;">High</span> / <span style="color: var(--accent-amber); font-weight: 600;">Medium</span> / <span style="color: var(--accent-red); font-weight: 600;">Low</span> / <span style="color: var(--accent-red); font-weight: 600;">Insufficient</span>.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="card" style="padding: 0.9rem 1.1rem; background: rgba(13, 29, 48, 0.9);">
+          <div class="card-header" style="margin-bottom: 0.4rem; gap: 8px;">
+            <div class="card-icon" style="width: 32px; height: 32px; font-size: 1.05rem;">🌍</div>
+            <div class="card-title" style="font-size: 0.92rem;">11-Language Support</div>
+          </div>
+          <p class="card-text" style="font-size: 0.78rem; line-height: 1.4;">
+            EN, AR, FR, ES, DE, IT, TR, PT, HI, ZH, JA. Full UX adaptivity: <span style="color: var(--primary-cyan);">Question ➔ Suggestions ➔ Generated Response</span>.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="card" style="padding: 0.9rem 1.1rem; background: rgba(13, 29, 48, 0.9);">
+          <div class="card-header" style="margin-bottom: 0.4rem; gap: 8px;">
+            <div class="card-icon" style="width: 32px; height: 32px; font-size: 1.05rem;">🔎</div>
+            <div class="card-title" style="font-size: 0.92rem;">Smart Autocomplete</div>
+          </div>
+          <p class="card-text" style="font-size: 0.78rem; line-height: 1.4;">
+            Real-time clinical query suggestions while typing medical terms. Suggestions adapt dynamically to selected language.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="card" style="padding: 0.9rem 1.1rem; background: rgba(13, 29, 48, 0.9);">
+          <div class="card-header" style="margin-bottom: 0.4rem; gap: 8px;">
+            <div class="card-icon" style="width: 32px; height: 32px; font-size: 1.05rem;">🌓</div>
+            <div class="card-title" style="font-size: 0.92rem;">Dark / Light Theme</div>
+          </div>
+          <p class="card-text" style="font-size: 0.78rem; line-height: 1.4;">
+            Professional medical dashboard with Dark Navy & Light modes. Language selector & theme toggle integrated into header.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="card" style="padding: 0.9rem 1.1rem; background: rgba(13, 29, 48, 0.9);">
+          <div class="card-header" style="margin-bottom: 0.4rem; gap: 8px;">
+            <div class="card-icon" style="width: 32px; height: 32px; font-size: 1.05rem;">📊</div>
+            <div class="card-title" style="font-size: 0.92rem;">Dashboard Analytics</div>
+          </div>
+          <p class="card-text" style="font-size: 0.78rem; line-height: 1.4;">
+            In-app analytics tab tracking Total Questions, Reliable Answers, Avg Sources, Languages, Confidence & Question History.
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="card" style="padding: 0.9rem 1.1rem; background: rgba(13, 29, 48, 0.9); border-color: rgba(34, 197, 94, 0.3);">
+          <div class="card-header" style="margin-bottom: 0.4rem; gap: 8px;">
+            <div class="card-icon" style="width: 32px; height: 32px; font-size: 1.05rem; background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3); color: var(--accent-green);">🛡️</div>
+            <div class="card-title" style="font-size: 0.92rem; color: var(--accent-green);">Clinical Safety & Grounding</div>
+          </div>
+          <p class="card-text" style="font-size: 0.76rem; line-height: 1.35; color: var(--text-white);">
+            Evidence Grounding ➔ Citation Validation ➔ Confidence ➔ Safe Refusal.<br>
+            <i style="color: var(--accent-amber);">"If evidence is unavailable, system refuses to provide an unsupported answer."</i>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- RAG Technical Core Strip -->
+      <div style="background: rgba(6, 17, 31, 0.95); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 10px; padding: 0.45rem 0.9rem; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 0.72rem; font-weight: 800; color: var(--primary-cyan); text-transform: uppercase; letter-spacing: 1px; background: rgba(34, 211, 238, 0.12); padding: 3px 8px; border-radius: 4px;">RAG CORE</span>
+        <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-white); display: flex; align-items: center; gap: 6px;">
+          <span>User Question</span>
+          <span style="color: var(--primary-cyan);">➔</span>
+          <span>ChromaDB Retrieval</span>
+          <span style="color: var(--primary-cyan);">➔</span>
+          <span>Medical Evidence</span>
+          <span style="color: var(--primary-cyan);">➔</span>
+          <span>Gemini Generation</span>
+          <span style="color: var(--primary-cyan);">➔</span>
+          <span>Citation Validation</span>
+          <span style="color: var(--primary-cyan);">➔</span>
+          <span style="color: var(--accent-green);">Grounded Response</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: APPLICATION / DEMO -->
+  <div class="slide" id="slide9">
+    <div class="slide-header">
+      <div>
+        <h2 class="slide-title">Our Clinical AI Dashboard</h2>
+        <p class="slide-subtitle">Live Streamlit application interface preview</p>
+      </div>
+      <span class="presenter-badge">🎤 Doha Mahmoud (~1m)</span>
+    </div>
+
+    <div class="slide-body grid-2" style="align-items: center;">
+      <div class="img-wrapper">
+        <img src="dashboard_screenshot.png" alt="Clinical AI Dashboard Live UI">
+      </div>
+
+      <div class="card" style="background: rgba(13, 29, 48, 0.9);">
+        <div class="card-title" style="color: var(--primary-cyan); margin-bottom: 0.8rem;">Live Interface Annotations</div>
+        <ul class="clean-list" style="font-size: 0.88rem; gap: 8px;">
+          <li><span style="background: var(--primary-cyan); color: #000; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">1</span> <b>Language Selection:</b> 11 supported languages</li>
+          <li><span style="background: var(--primary-cyan); color: #000; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">2</span> <b>Smart Search:</b> Autocomplete medical query input</li>
+          <li><span style="background: var(--primary-cyan); color: #000; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">3</span> <b>Ask Button:</b> One-click pipeline execution</li>
+          <li><span style="background: var(--primary-cyan); color: #000; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">4</span> <b>Final Answer:</b> Clean bulleted recommendation</li>
+          <li><span style="background: var(--primary-cyan); color: #000; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">5</span> <b>Supporting Evidence:</b> Concise synthesized rationale</li>
+          <li><span style="background: var(--primary-cyan); color: #000; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">6</span> <b>Sources & Confidence:</b> High confidence rating</li>
+        </ul>
+        <div style="margin-top: 0.8rem; padding: 0.6rem; background: rgba(34, 211, 238, 0.08); border-radius: 8px; font-size: 0.85rem; color: var(--text-white);">
+          <b>Sample Query:</b> <i>"What are the symptoms of high blood pressure?"</i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: CONCLUSION -->
+  <div class="slide" id="slide10">
+    <div class="slide-header">
+      <span class="slide-tag">✨ Hackathon Conclusion</span>
+      <span class="presenter-badge">🎤 Doha Mahmoud (~30s)</span>
+    </div>
+
+    <div class="slide-body" style="text-align: center; align-items: center; justify-content: center; gap: 1.8rem;">
+      <div>
+        <h1 style="font-size: 3.6rem; font-weight: 800; color: var(--text-white);">Thank You 💙</h1>
+        <p style="font-size: 1.4rem; color: var(--primary-cyan); margin-top: 0.4rem; font-weight: 600;">AI Clinical Decision Support Lite</p>
+        <p style="font-size: 1.05rem; color: var(--text-muted); margin-top: 0.2rem;">Evidence-Grounded Multilingual Clinical Assistant</p>
+      </div>
+
+      <div class="card" style="padding: 1.2rem 3rem; background: rgba(13, 29, 48, 0.8);">
+        <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Presenting Team</div>
+        <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-white);">
+          Rania Mohamed &bull; Menna Abo El Fadl &bull; Rofaida Ashraf &bull; Doha Mahmoud
+        </div>
+      </div>
+
+      <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary-cyan); letter-spacing: 1px;">
+        Questions & Discussion?
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Speaker Notes Container -->
+<div class="speaker-notes-panel" id="speakerNotes">
+  <div style="font-weight: 700; color: var(--primary-cyan); margin-bottom: 4px;">Speaker Script & Timing:</div>
+  <div id="notesContent">Speaker notes will appear here.</div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<div class="nav-bar">
+  <button class="nav-btn" onclick="prevSlide()">◀ Previous</button>
+  <div class="slide-counter" id="slideCounter">Slide 1 / 10</div>
+  <button class="nav-btn" onclick="toggleNotes()">📝 Notes</button>
+  <button class="nav-btn" onclick="nextSlide()">Next ▶</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progressBar');
+  const slideCounter = document.getElementById('slideCounter');
+  const speakerNotes = document.getElementById('speakerNotes');
+  const notesContent = document.getElementById('notesContent');
+
+  let currentSlide = 0;
+
+  const notesList = [
+    "SLIDE 1 (Rania Mohamed - 30s): Hello judges! We present AI Clinical Decision Support Lite — an evidence-grounded multilingual clinical assistant built by Rania Mohamed, Menna Abo El Fadl, Rofaida Ashraf, and Doha Mahmoud.",
+    "SLIDE 2 (Rania Mohamed - 1m): Medical information is vast and searching guidelines takes time. Generic AI models generate ungrounded, hallucinated answers. In healthcare, hallucinated info is dangerous. We need evidence and traceability.",
+    "SLIDE 3 (Rania Mohamed - 1m): Traditional search is accurate but slow. Generic AI is fast but unreliable. Healthcare questions require answers that are Fast, Grounded, Traceable, and Safe.",
+    "SLIDE 4 (Menna Abo El Fadl - 1m): Our proposed solution uses Retrieval-Augmented Generation. We retrieve relevant medical evidence first, then generate the answer strictly from that retrieved evidence.",
+    "SLIDE 5 (Menna Abo El Fadl - 1m): Who benefits? Healthcare professionals get faster evidence access; medical students get evidence-based learning; health seekers get transparent, structured answers. We stream Search ➔ Evidence ➔ Answer.",
+    "SLIDE 6 (Rofaida Ashraf - 1m): Our technology stack combines Python, Streamlit for UI, ChromaDB for vector storage, FastEmbed for local embeddings, Google Gemini for LLM generation, and WHO & MedlinePlus guidelines.",
+    "SLIDE 7 (Rofaida Ashraf - 1.5m): We built a complete 10-step pipeline: Document Ingestion ➔ PDF Parsing ➔ Chunking ➔ Embeddings ➔ ChromaDB Vector Storage ➔ Similarity Retrieval ➔ Context Construction ➔ Gemini Generation ➔ JSON Schema Validation ➔ Streamlit UI.",
+    "SLIDE 8 (Rofaida Ashraf - 1m): Slide 8 highlights our 6 key pillars: Clinical Decision Support with 4 confidence levels, 11-language end-to-end support, language-adapted autocomplete, dark/light themes, integrated analytics, and strict safety grounding with safe refusal. Anchored by our RAG Core pipeline.",
+    "SLIDE 9 (Doha Mahmoud - 1m): Here is our live Streamlit clinical AI dashboard showing language selection, autocomplete search, bulleted recommendations, supporting evidence summary, and confidence rating.",
+    "SLIDE 10 (Doha Mahmoud - 30s): Thank you for your time! Our team — Rania, Menna, Rofaida, and Doha — welcomes your questions and feedback."
+  ];
+
+  function showSlide(index) {
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === index);
+    });
+    currentSlide = index;
+    progressBar.style.width = ((index + 1) / slides.length * 100) + '%';
+    slideCounter.innerText = `Slide ${index + 1} / ${slides.length}`;
+    notesContent.innerText = notesList[index];
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) showSlide(currentSlide + 1);
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) showSlide(currentSlide - 1);
+  }
+
+  function toggleNotes() {
+    speakerNotes.classList.toggle('active');
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') nextSlide();
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+    if (e.key === 'Home') showSlide(0);
+    if (e.key === 'End') showSlide(slides.length - 1);
+    if (e.key === 'n' || e.key === 'N') toggleNotes();
+  });
+
+  showSlide(0);
+</script>
+
+</body>
+</html>
