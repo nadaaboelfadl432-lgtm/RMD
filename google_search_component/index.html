@@ -84,7 +84,7 @@
             bottom: 12px;
             width: 44px;
             height: 44px;
-            border-radius: 12px;
+            border-radius: 50%;
             background: linear-gradient(135deg, #2F80ED 0%, #7C3AED 100%);
             border: none;
             color: #FFFFFF;
@@ -204,7 +204,7 @@
         <div id="searchWrapper" class="search-wrapper">
             <div class="textarea-container">
                 <textarea id="searchInput" class="search-textarea" dir="auto" placeholder="Ask a clinical question..." autocomplete="off" spellcheck="false"></textarea>
-                <button type="button" id="submitBtn" class="submit-btn" title="Submit Question">↑</button>
+                <button type="button" id="submitBtn" class="submit-btn" title="Submit Question"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg></button>
             </div>
         </div>
         <div id="autocompleteDropdown" class="dropdown-menu"></div>
@@ -247,8 +247,49 @@
             "What non-pharmacological measures help lower blood pressure?",
             "What are the cardiovascular risks associated with untreated hypertension?",
             "How does high blood pressure affect heart and kidney health?",
-            "Which patient groups are at highest risk from high blood pressure?"
+            "Which patient groups are at highest risk from high blood pressure?",
+            "ما هي أعراض ارتفاع ضغط الدم؟",
+            "ما هي أعراض ارتفاع ضغط الدم أثناء الحمل؟",
+            "ما هي أعراض ارتفاع ضغط الدم الرئوي؟",
+            "هل هناك علامات تحذيرية مرتبطة بارتفاع ضغط الدم؟",
+            "ما مستوى ضغط الدم الذي توصي منظمة الصحة العالمية ببدء العلاج عنده؟",
+            "ما هي الأدوية الأولى الموصى بها لعلاج ارتفاع ضغط الدم؟",
+            "ما هو العلاج الدوائي المركب الموصى به للتحكم في ضغط الدم؟",
+            "متى يجب بدء العلاج الدوائي لارتفاع ضغط الدم؟",
+            "ما هو هدف ضغط الدم وفقاً لإرشادات منظمة الصحة العالمية؟",
+            "ما هو هدف ضغط الدم للمرضى المصابين بأمراض القلب والأوعية الدموية؟",
+            "ما مستوى ضغط الدم الذي يجب أن يثير بدء تناول الدواء؟",
+            "ما هو ضغط الدم الطبيعي مقارنة بالمرتفع؟",
+            "ما مستوى ضغط الدم المطبق أثناء الحمل؟",
+            "كيف يتم التعامل مع ارتفاع ضغط الدم أثناء الحمل وفقاً للإرشادات السريرية؟",
+            "ما هي التدخلات في نمط الحياة الموصى بها لإدارة ارتفاع ضغط الدم؟",
+            "كيف يؤثر تقليل الملح في النظام الغذائي على ضغط الدم؟",
+            "ما هي التدابير غير الدوائية التي تساعد في خفض ضغط الدم؟",
+            "ما هي المخاطر القلبية الوعائية المرتبطة مع عدم علاج ارتفاع ضغط الدم؟",
+            "كيف يؤثر ارتفاع ضغط الدم على صحة القلب والكلى؟",
+            "ما هي فئات المرضى الأكثر عرضة للخطر من ارتفاع ضغط الدم؟",
+            "Quels sont les symptômes de l'hypertension artérielle?",
+            "Quel niveau de tension artérielle l'OMS recommande-t-elle pour commencer le traitement?",
+            "Quels sont les médicaments de première ligne recommandés pour l'hypertension?",
+            "Quelle est la tension artérielle cible selon les directives de l'OMS?",
+            "¿Cuáles son los síntomas de la presión arterial alta?",
+            "¿Qué nivel de presión arterial recomienda la OMS para iniciar el tratamiento?",
+            "¿Cuáles son los medicamentos de primera línea recomendados para la hipertensión?",
+            "¿Cuál es la presión arterial objetivo según las directrices de la OMS?"
         ];
+
+        function isArabicText(text) {
+            return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(text);
+        }
+
+        function getFilteredPool(queryText) {
+            const isArabic = isArabicText(queryText);
+            if (isArabic) {
+                return GROUNDED_QUESTIONS.filter(q => isArabicText(q));
+            }
+            const latinPool = GROUNDED_QUESTIONS.filter(q => !isArabicText(q));
+            return latinPool.length > 0 ? latinPool : GROUNDED_QUESTIONS;
+        }
 
         const searchWrapper = document.getElementById("searchWrapper");
         const searchInput = document.getElementById("searchInput");
@@ -342,8 +383,9 @@
             }
 
             const query = rawVal.toLowerCase().normalize("NFC");
+            const pool = getFilteredPool(rawVal);
 
-            const matched = GROUNDED_QUESTIONS.filter(q => {
+            const matched = pool.filter(q => {
                 const qLower = q.toLowerCase().normalize("NFC");
                 if (qLower.includes(query)) return true;
                 const words = qLower.split(/\s+/);
